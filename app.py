@@ -19,16 +19,11 @@ st.markdown("""
     .stApp {
         background-color: #f8f9fa;
     }
-    h1 {
-        color: #0A2540 !important;
-    }
-    .stChatMessage {
-        border-radius: 10px;
-    }
     .stButton > button {
         background-color: #0A2540;
         color: white;
         border-radius: 6px;
+        border: none;
     }
     .stButton > button:hover {
         background-color: #C9A227;
@@ -40,11 +35,24 @@ st.markdown("""
     section[data-testid="stSidebar"] * {
         color: white !important;
     }
+    section[data-testid="stSidebar"] .stMarkdown {
+        color: #e0e0e0 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("5K Realty – Seller Intake Agent")
-st.caption("Internal tool for qualifying seller leads")
+# Branded Header
+st.markdown("""
+<div style="text-align:center; margin-bottom: 1.5rem;">
+    <h1 style="color:#0A2540; margin-bottom:0.2rem; font-size:2rem;">5K Realty</h1>
+    <p style="color:#C9A227; font-size:1.15rem; font-weight:500; margin:0;">
+        Keep More of Your Equity
+    </p>
+    <p style="color:#666; font-size:0.95rem; margin-top:0.4rem;">
+        Seller Intake Agent
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # Initialize session state
 if "chat_history" not in st.session_state:
