@@ -1,1 +1,5 @@
-
+streamlit
+langgraph
+langchain-openai
+langchain-core
+pydantic
