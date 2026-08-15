@@ -1,9 +1,7 @@
-from typing import Annotated, List
-from langgraph.graph import StateGraph, END
-from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 from langchain_core.tools import tool
+from langchain_core.messages import SystemMessage
+from langgraph.prebuilt import create_react_agent
 import streamlit as st
 
 # -----------------------------
@@ -27,8 +25,6 @@ def calculate_savings(sale_price: float) -> str:
     )
 
 
-tools = [calculate_savings]
-
 SYSTEM_PROMPT = """
 You are the Seller Intake Agent for 5K Realty, a flat-fee real estate brokerage serving Fort Mill, Lake Wylie, Tega Cay, Rock Hill, Ballantyne, and the greater Charlotte area.
 
@@ -47,63 +43,16 @@ Guidelines:
 - Never invent details
 """
 
-# -----------------------------
-# State
-# -----------------------------
-class State:
-    messages: Annotated[List, add_messages]
-
-
-# -----------------------------
-# LLM + Tool binding
-# -----------------------------
-def get_llm():
+def get_agent():
     api_key = st.secrets["OPENAI_API_KEY"].strip()
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4, api_key=api_key)
-    return llm.bind_tools(tools)
+    
+    agent = create_react_agent(
+        llm,
+        tools=[calculate_savings],
+        state_modifier=SystemMessage(content=SYSTEM_PROMPT)
+    )
+    return agent
 
-
-# -----------------------------
-# Nodes
-# -----------------------------
-def chatbot(state):
-    llm = get_llm()
-    messages = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
-    response = llm.invoke(messages)
-    return {"messages": [response]}
-
-
-def tool_node(state):
-    last_message = state["messages"][-1]
-    tool_messages = []
-
-    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-        for tool_call in last_message.tool_calls:
-            if tool_call["name"] == "calculate_savings":
-                result = calculate_savings.invoke(tool_call["args"])
-                tool_messages.append(
-                    ToolMessage(content=str(result), tool_call_id=tool_call["id"])
-                )
-    return {"messages": tool_messages}
-
-
-def should_continue(state):
-    last_message = state["messages"][-1]
-    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-        return "tools"
-    return END
-
-
-# -----------------------------
-# Build the simple graph
-# -----------------------------
-graph_builder = StateGraph(dict)
-
-graph_builder.add_node("chatbot", chatbot)
-graph_builder.add_node("tools", tool_node)
-
-graph_builder.set_entry_point("chatbot")
-graph_builder.add_conditional_edges("chatbot", should_continue, {"tools": "tools", END: END})
-graph_builder.add_edge("tools", "chatbot")
-
-agent = graph_builder.compile()
+# Create the agent
+agent = get_agent()
