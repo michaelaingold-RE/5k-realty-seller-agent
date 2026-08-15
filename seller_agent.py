@@ -35,12 +35,12 @@ tools = [calculate_savings]
 
 
 # -----------------------------
-# Initialize the LLM (lazy loading - safer with Streamlit secrets)
+# Initialize the LLM (lazy loading)
 # -----------------------------
 def get_llm():
     api_key = st.secrets["OPENAI_API_KEY"]
     llm = ChatOpenAI(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         temperature=0.4,
         api_key=api_key
     )
@@ -150,7 +150,7 @@ def route_after_conversation(state: AgentState) -> Literal["tool_node", "router"
 
 
 def route_node(state: AgentState):
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.3, api_key=st.secrets["OPENAI_API_KEY"])
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=st.secrets["OPENAI_API_KEY"])
     router = llm.with_structured_output(RoutingDecision)
 
     prompt = f"""
@@ -177,7 +177,7 @@ def should_continue(state: AgentState) -> Literal["extract_info", "conversation"
 
 
 def extract_info_node(state: AgentState):
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.2, api_key=st.secrets["OPENAI_API_KEY"])
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, api_key=st.secrets["OPENAI_API_KEY"])
     extractor = llm.with_structured_output(SellerInfo)
     prompt = f"""
     Extract all clearly provided seller information.
@@ -191,7 +191,7 @@ def extract_info_node(state: AgentState):
 
 
 def summary_node(state: AgentState):
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.2, api_key=st.secrets["OPENAI_API_KEY"])
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, api_key=st.secrets["OPENAI_API_KEY"])
     summarizer = llm.with_structured_output(FinalSummary)
     prompt = f"""
     Create a clear summary of this seller lead.
