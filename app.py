@@ -1,6 +1,7 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
 from seller_agent import agent
+import traceback
 
 st.set_page_config(
     page_title="5K Realty – Seller Intake Agent",
@@ -75,7 +76,8 @@ if prompt := st.chat_input("Type your message here..."):
                     st.session_state.summary = result["summary"]
 
             except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
+                st.error(f"An error occurred: {type(e).__name__}: {str(e)}")
+                st.code(traceback.format_exc())
 
 # Display final summary
 if st.session_state.summary:
