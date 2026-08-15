@@ -33,18 +33,18 @@ def calculate_savings(sale_price: float) -> str:
 
 tools = [calculate_savings]
 
-# -----------------------------
-# Initialize the LLM
-# Reads the API key from Streamlit secrets
-# -----------------------------
-api_key = st.secrets.get("OPENAI_API_KEY", None)
 
-llm = ChatOpenAI(
-    model="gpt-4o",
-    temperature=0.4,
-    api_key=api_key
-)
-llm_with_tools = llm.bind_tools(tools)
+# -----------------------------
+# Initialize the LLM (lazy loading - safer with Streamlit secrets)
+# -----------------------------
+def get_llm():
+    api_key = st.secrets["OPENAI_API_KEY"]
+    llm = ChatOpenAI(
+        model="gpt-4o",
+        temperature=0.4,
+        api_key=api_key
+    )
+    return llm.bind_tools(tools)
 
 
 # -----------------------------
@@ -120,6 +120,7 @@ Guidelines:
 # Nodes
 # -----------------------------
 def conversation_node(state: AgentState):
+    llm_with_tools = get_llm()
     messages = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
     response = llm_with_tools.invoke(messages)
     return {"messages": [response]}
@@ -149,6 +150,7 @@ def route_after_conversation(state: AgentState) -> Literal["tool_node", "router"
 
 
 def route_node(state: AgentState):
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.3, api_key=st.secrets["OPENAI_API_KEY"])
     router = llm.with_structured_output(RoutingDecision)
 
     prompt = f"""
@@ -175,6 +177,7 @@ def should_continue(state: AgentState) -> Literal["extract_info", "conversation"
 
 
 def extract_info_node(state: AgentState):
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.2, api_key=st.secrets["OPENAI_API_KEY"])
     extractor = llm.with_structured_output(SellerInfo)
     prompt = f"""
     Extract all clearly provided seller information.
@@ -188,6 +191,7 @@ def extract_info_node(state: AgentState):
 
 
 def summary_node(state: AgentState):
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.2, api_key=st.secrets["OPENAI_API_KEY"])
     summarizer = llm.with_structured_output(FinalSummary)
     prompt = f"""
     Create a clear summary of this seller lead.
