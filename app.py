@@ -32,7 +32,7 @@ with st.sidebar:
 
 # Display chat history
 for message in st.session_state.messages:
-    if isinstance(message, AIMessage):
+    if isinstance(message, AIMessage) and message.content:
         with st.chat_message("assistant"):
             st.markdown(message.content)
     elif isinstance(message, HumanMessage):
@@ -51,14 +51,17 @@ if prompt := st.chat_input("Type your message here..."):
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
+                # Only send clean messages to the agent
+                clean_messages = []
+                for msg in st.session_state.messages:
+                    if isinstance(msg, (HumanMessage, AIMessage)) and msg.content:
+                        clean_messages.append(msg)
+
                 result = agent.invoke({
-                    "messages": st.session_state.messages,
-                    "seller_info": {},
-                    "ready_for_summary": False,
-                    "summary": None
+                    "messages": clean_messages
                 })
 
-                # Update message history
+                # Update message history with the new result
                 st.session_state.messages = result["messages"]
 
                 # Show the latest AI response
@@ -70,10 +73,6 @@ if prompt := st.chat_input("Type your message here..."):
 
                 if last_ai:
                     st.markdown(last_ai.content)
-
-                # Capture summary if available
-                if result.get("summary"):
-                    st.session_state.summary = result["summary"]
 
             except Exception as e:
                 st.error(f"An error occurred: {type(e).__name__}: {str(e)}")
