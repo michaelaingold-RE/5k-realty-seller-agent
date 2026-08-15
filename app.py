@@ -9,12 +9,46 @@ st.set_page_config(
     layout="centered"
 )
 
+# Custom CSS for navy + gold branding
+st.markdown("""
+<style>
+    :root {
+        --navy: #0A2540;
+        --gold: #C9A227;
+    }
+    .stApp {
+        background-color: #f8f9fa;
+    }
+    h1 {
+        color: #0A2540 !important;
+    }
+    .stChatMessage {
+        border-radius: 10px;
+    }
+    .stButton > button {
+        background-color: #0A2540;
+        color: white;
+        border-radius: 6px;
+    }
+    .stButton > button:hover {
+        background-color: #C9A227;
+        color: #0A2540;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #0A2540;
+    }
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("5K Realty – Seller Intake Agent")
 st.caption("Internal tool for qualifying seller leads")
 
-# Initialize session state - only store simple role/content pairs
+# Initialize session state
 if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []   # list of {"role": "user"/"assistant", "content": "..."}
+    st.session_state.chat_history = []
 
 # Sidebar
 with st.sidebar:
@@ -34,7 +68,6 @@ for msg in st.session_state.chat_history:
 
 # Chat input
 if prompt := st.chat_input("Type your message here..."):
-    # Add user message to history
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     
     with st.chat_message("user"):
@@ -48,13 +81,11 @@ if prompt := st.chat_input("Type your message here..."):
         else:
             clean_messages.append(AIMessage(content=msg["content"]))
 
-    # Run the agent
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
                 result = agent.invoke({"messages": clean_messages})
 
-                # Find the latest AI response that has content
                 ai_content = None
                 for msg in reversed(result["messages"]):
                     if isinstance(msg, AIMessage) and msg.content:
