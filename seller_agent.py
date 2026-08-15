@@ -1,6 +1,5 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
-from langchain_core.messages import SystemMessage
 from langgraph.prebuilt import create_react_agent
 import streamlit as st
 
@@ -50,9 +49,8 @@ def get_agent():
     agent = create_react_agent(
         llm,
         tools=[calculate_savings],
-        state_modifier=SystemMessage(content=SYSTEM_PROMPT)
+        prompt=SYSTEM_PROMPT
     )
     return agent
 
-# Create the agent
 agent = get_agent()
