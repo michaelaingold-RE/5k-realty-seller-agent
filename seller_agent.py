@@ -42,7 +42,9 @@ Guidelines:
 - Never invent details
 """
 
+@st.cache_resource
 def get_agent():
+    """Cache the agent so it is only created once."""
     api_key = st.secrets["OPENAI_API_KEY"].strip()
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4, api_key=api_key)
     
@@ -53,4 +55,5 @@ def get_agent():
     )
     return agent
 
+# Create the cached agent
 agent = get_agent()
