@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, Base
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 import operator
-import os
+import streamlit as st
 
 # -----------------------------
 # Savings Calculator Tool
@@ -33,8 +33,17 @@ def calculate_savings(sale_price: float) -> str:
 
 tools = [calculate_savings]
 
-# Initialize the LLM (API key will come from Streamlit secrets)
-llm = ChatOpenAI(model="gpt-4o", temperature=0.4)
+# -----------------------------
+# Initialize the LLM
+# Reads the API key from Streamlit secrets
+# -----------------------------
+api_key = st.secrets.get("OPENAI_API_KEY", None)
+
+llm = ChatOpenAI(
+    model="gpt-4o",
+    temperature=0.4,
+    api_key=api_key
+)
 llm_with_tools = llm.bind_tools(tools)
 
 
